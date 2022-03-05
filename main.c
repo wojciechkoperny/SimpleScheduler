@@ -1,93 +1,105 @@
-/******************************************************************************
-
-                            Online C Compiler.
-                Code, Compile, Run and Debug C program online.
-Write your code in this editor and press "Run" button to compile and execute it.
-
-*******************************************************************************/
-
 #include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <unistd.h>
+#include <signal.h>
 
-void taks2ms1(void)
+#include "SchM.h"
+
+#ifndef NULL_PTR
+#define NULL_PTR     ((void *)0u)
+#endif
+#define DEFAULT_TIMER 1U
+#define DBUDOWANIETESTOWE
+static pthread_t thread_fun1, thread_fun2;
+int Timer = DEFAULT_TIMER;
+
+void SigintHandler(int a)
 {
-    printf("task 2ms 1\n");
+    printf("\033[0;31m\nBYE World : TERMINATION : %d\n ",a);
+    (void)pthread_cancel(thread_fun1);
+    (void)pthread_cancel(thread_fun2);
+    pthread_exit(NULL);
 }
-void taks2ms2(void)
-{
-    printf("task 2ms 2\n");
-}
 
-void taks4ms1(void)
+void* fun1 (void *arg)
 {
-    printf("task 4ms 1\n");
-}
-
-void taks4ms2(void)
-{
-    printf("task 4ms 2\n");
-}
-
-typedef struct
-{
-   void  (*task)(void);   /*! pointer to runnable         */
-} SchM_TasksFunctions;
-
-static const SchM_TasksFunctions SchM_TaskFunctions2ms[]=
-{
-    {taks2ms1},
-    {taks2ms2},
-    
-};
-
-static const SchM_TasksFunctions SchM_TaskFunctions4ms[]=
-{
-    {taks4ms1},
-    {taks4ms2},
-};
-
-typedef struct
-{
-    const SchM_TasksFunctions const* ptrsFun;/*! pointer to runnables         */
-    const int NumOfTasks;
-    const int ExecuteTime;
-    int TimeTillExecute;
-} SchM_Task_t;
-
-SchM_Task_t SchM_Task[2] =
-{
-    {.ptrsFun = SchM_TaskFunctions2ms,.NumOfTasks = sizeof(SchM_TaskFunctions2ms)/sizeof(SchM_TaskFunctions2ms[0]),  .ExecuteTime = 20, .TimeTillExecute = 0},
-    {.ptrsFun = SchM_TaskFunctions4ms,.NumOfTasks = sizeof(SchM_TaskFunctions4ms)/sizeof(SchM_TaskFunctions4ms[0]),  .ExecuteTime = 40, .TimeTillExecute = 10}
-};
-
-int main()
-{
-    int liczbaObiegow=0;
-    int i=0;
-    int j=0;
-    int ucCounter =20;
-    printf("Hello World\n");
-    
-    //printf("ilosc taskow %d", task2ms.NumOfTasks);
-    
-    while(liczbaObiegow<100)//niepotrzebna petla - docelowo nieskonczona powinna byc
+    static int ilosc=0;
+    while(1)
     {
-        for(i=0;i<2;i++)
-        {
-        SchM_Task[i].TimeTillExecute = (SchM_Task[i].TimeTillExecute + SchM_Task[i].ExecuteTime - 1)% SchM_Task[i].ExecuteTime;
-        if(SchM_Task[i].TimeTillExecute==0)
-        {
-            printf("JEST TASK %d\n",SchM_Task[i].ExecuteTime);
-            for(j=0;j<SchM_Task[i].NumOfTasks;j++)
-            {
-                (SchM_Task[i].ptrsFun[j].task)();
-            }
-        }
-            
-        }
-        //printf("time2ms %d\n", task2ms.TimeTillExecute);
-
-        liczbaObiegow++;
+        printf ("\e[1;32mMILISECONDS PASSED: %d\e[0m\n", ilosc);
+        SchM_Tick();
+        ilosc++;     
+       // (void)pthread_join(thread_fun2, NULL_PTR);
+       // printf("thread 2 joined\n");
+        usleep(10000);
     }
+}
+void* fun2 (void *arg)
+{
+    static int ilosc=0;
+    printf ("\e[1;33mThis is TASK 2 call number: %d\e[0m\n", ilosc);
+    SchM_Main();
+  /*   while(1)
+    {
+        ilosc++;
+        sleep(1);
+    } */
+}
+
+void taskFunction2ms(void)
+{
+    printf ("\e[1;33mThis is TASK 2ms call number\e[0m\n");
+}
+
+void taskFunction4ms(void)
+{
+    printf ("\e[1;34mThis is TASK 4ms call number\e[0m\n");
+}
+
+void taskFunction5ms(void)
+{
+    printf ("\e[1;35mThis is TASK 5ms call number\e[0m\n");
+}
+
+void taskFunction10ms(void)
+{
+    printf ("\e[1;36mThis is TASK 10ms call number\e[0m\n");
+}
+
+
+
+int main(int argc, char *argv[])
+{
+     if (argc >1)
+    {
+        Timer = atoi(argv[1]);
+    } 
+    printf("Hello World\n");
+
+    #ifdef TEST_BUILD
+        printf("\033[0;31mTEST_BUILD SET!\n");
+    #endif
+
+    struct sigaction sa;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_handler = SigintHandler;
+
+    (void)sigaction(SIGINT, &sa, NULL);
+    printf("call init function\n");
+     SchM_Init();
+    sleep(2);
+
+    (void)pthread_create(&thread_fun1, NULL, &fun1, NULL);
+    usleep(1000);
+    (void)pthread_create(&thread_fun2, NULL_PTR, &fun2, NULL_PTR);
+
+    printf("threads create\n");
+
+    (void)pthread_join(thread_fun1, NULL_PTR);
+    printf("thread 1 joined\n");
+    (void)pthread_join(thread_fun2, NULL_PTR);
+    printf("thread 2 joined\n");  
 
     return 0;
 }
