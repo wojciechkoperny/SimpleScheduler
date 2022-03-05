@@ -23,3 +23,10 @@ to run test run commands
 
 ctrl+c to quit running test
 
+Additional data:
+
+This SimpleScheduler project was created to have simple support of time base scheduling in embdedded MCU. SchM_Tick shall normally be triggered in periodic time interrupt interval every 1ms like PIT(periodic interupt trigger)
+
+This SimpleScheduler also supports SchM_Init functions that provides init functionality and shall be called before SchM_Main
+
+
