@@ -1,3 +1,9 @@
+
+
+
+//THIS MAIN IS FOR TESTING SchM IMPLEMENTATION ONLY
+//its using posix threads so shall be lunch under linux or other posix compiant system
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
