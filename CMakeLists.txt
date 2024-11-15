@@ -3,7 +3,6 @@ project(test_proj VERSION 1.0)
 
 SET(CMAKE_MAKE_PROGRAM make)
 
-add_executable(test_proj1   SchM.c
+add_executable(test_proj1   other_file.c
                             main.c)
-                            
-target_link_libraries(test_proj1 pthread)
+include_directories(inc)
